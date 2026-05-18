@@ -37,7 +37,6 @@
             width: 100%;
             max-width: 400px;
             box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
-            backdrop-filter: blur(10px);
         }
 
         .auth-card h2 {
@@ -104,44 +103,58 @@
         .chat-layout {
             display: flex;
             height: 100%;
-            transition: transform 0.3s ease;
         }
 
-        /* Sidebar - Mobile Friendly */
+        /* Sidebar - Desktop first (ALWAYS VISIBLE) */
         .sidebar {
-            width: 85%;
-            max-width: 320px;
+            width: 300px;
             background: #1e1e2f;
             color: white;
             display: flex;
             flex-direction: column;
             border-right: 1px solid #2d2d3f;
-            position: fixed;
+            position: relative;
             left: 0;
             top: 0;
             bottom: 0;
             z-index: 20;
-            transform: translateX(-100%);
             transition: transform 0.3s ease;
         }
 
-        .sidebar.open {
-            transform: translateX(0);
+        /* Mobile styles - sidebar hidden by default */
+        @media (max-width: 768px) {
+            .sidebar {
+                position: fixed;
+                left: 0;
+                top: 0;
+                bottom: 0;
+                width: 280px;
+                transform: translateX(-100%);
+            }
+            
+            .sidebar.open {
+                transform: translateX(0);
+            }
         }
 
+        /* Sidebar overlay for mobile */
         .sidebar-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.5);
-            z-index: 15;
             display: none;
         }
 
-        .sidebar-overlay.open {
-            display: block;
+        @media (max-width: 768px) {
+            .sidebar-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0,0,0,0.5);
+                z-index: 15;
+            }
+            .sidebar-overlay.open {
+                display: block;
+            }
         }
 
         .profile-section {
@@ -151,7 +164,7 @@
             cursor: pointer;
         }
 
-        .profile-section:active {
+        .profile-section:hover {
             background: #2d2d3f;
         }
 
@@ -195,7 +208,7 @@
             transition: all 0.2s;
         }
 
-        .tab:active {
+        .tab:hover {
             background: #2d2d3f;
         }
 
@@ -250,7 +263,7 @@
             transition: background 0.2s;
         }
 
-        .user-item:active, .group-item:active, .friend-item:active {
+        .user-item:hover, .group-item:hover, .friend-item:hover {
             background: #2d2d3f;
         }
 
@@ -328,15 +341,6 @@
             font-weight: 500;
         }
 
-        .badge {
-            background: #e53e3e;
-            color: white;
-            border-radius: 50%;
-            padding: 2px 6px;
-            font-size: 10px;
-            margin-left: 8px;
-        }
-
         /* Chat Area */
         .chat-area {
             flex: 1;
@@ -364,7 +368,8 @@
             flex: 1;
         }
 
-        .menu-btn {
+        /* Mobile buttons - hidden on desktop */
+        .menu-btn, .back-btn {
             background: none;
             border: none;
             font-size: 22px;
@@ -375,15 +380,10 @@
             display: none;
         }
 
-        .back-btn {
-            background: none;
-            border: none;
-            font-size: 20px;
-            color: #4a5568;
-            cursor: pointer;
-            padding: 8px;
-            margin-right: 8px;
-            display: none;
+        @media (max-width: 768px) {
+            .menu-btn, .back-btn {
+                display: block;
+            }
         }
 
         .chat-user-avatar {
@@ -563,10 +563,6 @@
             white-space: nowrap;
         }
 
-        .input-area button:active {
-            transform: scale(0.97);
-        }
-
         /* Modals */
         .modal {
             display: none;
@@ -587,7 +583,6 @@
             padding: 24px;
             width: 90%;
             max-width: 380px;
-            margin: 20px;
         }
 
         .modal-content h3 {
@@ -654,65 +649,13 @@
 
         .hidden { display: none; }
 
-        /* Mobile Styles */
+        /* Responsive */
         @media (max-width: 768px) {
-            .menu-btn {
-                display: block;
-            }
-            
-            .back-btn {
-                display: block;
-            }
-            
             .sidebar {
                 width: 280px;
             }
-            
             .message {
                 max-width: 90%;
-            }
-            
-            .message-bubble {
-                font-size: 14px;
-                padding: 10px 14px;
-            }
-            
-            .input-area input {
-                font-size: 16px;
-            }
-            
-            .input-area button {
-                padding: 12px 18px;
-            }
-            
-            .tabs {
-                position: sticky;
-                top: 0;
-                z-index: 5;
-            }
-            
-            .chat-user-info h3 {
-                font-size: 15px;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .auth-card {
-                padding: 30px 20px;
-            }
-            
-            .profile-pic {
-                width: 50px;
-                height: 50px;
-            }
-            
-            .user-avatar, .friend-avatar {
-                width: 44px;
-                height: 44px;
-            }
-            
-            .message {
-                max-width: 95%;
             }
         }
     </style>
@@ -868,7 +811,6 @@
         const menuToggleBtn = document.getElementById('menuToggleBtn');
         const backToChatsBtn = document.getElementById('backToChatsBtn');
         
-        // Tab elements
         const friendsTab = document.getElementById('friendsTab');
         const groupsTab = document.getElementById('groupsTab');
         const requestsTab = document.getElementById('requestsTab');
@@ -883,7 +825,7 @@
         
         let isLogin = true;
 
-        // Mobile sidebar functions
+        // Sidebar functions
         function openSidebar() {
             sidebar.classList.add('open');
             sidebarOverlay.classList.add('open');
@@ -897,11 +839,8 @@
         }
 
         function toggleSidebar() {
-            if (isSidebarOpen) {
-                closeSidebar();
-            } else {
-                openSidebar();
-            }
+            if (isSidebarOpen) closeSidebar();
+            else openSidebar();
         }
 
         function showChatsList() {
@@ -911,10 +850,15 @@
                 document.getElementById('inputArea').style.display = 'none';
                 document.getElementById('messagesContainer').innerHTML = '<div style="text-align: center; color: #a0aec0; padding: 50px;">Select a chat to start</div>';
             }
-            closeSidebar();
+            if (window.innerWidth <= 768) closeSidebar();
         }
 
-        // Toggle login/register
+        // Event listeners
+        if (menuToggleBtn) menuToggleBtn.onclick = toggleSidebar;
+        if (backToChatsBtn) backToChatsBtn.onclick = showChatsList;
+        if (sidebarOverlay) sidebarOverlay.onclick = closeSidebar;
+
+        // Auth toggle
         toggleAuth.onclick = () => {
             isLogin = !isLogin;
             if (isLogin) {
@@ -988,17 +932,6 @@
             return false;
         }
 
-        // Mobile event listeners
-        if (menuToggleBtn) {
-            menuToggleBtn.onclick = toggleSidebar;
-        }
-        
-        if (backToChatsBtn) {
-            backToChatsBtn.onclick = showChatsList;
-        }
-        
-        sidebarOverlay.onclick = closeSidebar;
-
         // Tab switching
         function setActiveTab(tab) {
             friendsTab.classList.remove('active');
@@ -1028,7 +961,7 @@
                 searchResultsDiv.classList.remove('hidden');
                 searchBox.classList.remove('hidden');
             }
-            closeSidebar();
+            if (window.innerWidth <= 768) closeSidebar();
         }
 
         friendsTab.onclick = () => setActiveTab('friends');
@@ -1036,6 +969,7 @@
         requestsTab.onclick = () => setActiveTab('requests');
         searchTab.onclick = () => setActiveTab('search');
 
+        // Search
         searchInput.oninput = async () => {
             const query = searchInput.value.trim();
             if (query.length < 2) {
@@ -1185,7 +1119,7 @@
             document.getElementById('groupActions').style.display = 'none';
             document.getElementById('messageInput').disabled = false;
             document.getElementById('messageInput').focus();
-            closeSidebar();
+            if (window.innerWidth <= 768) closeSidebar();
             
             const res = await fetch(`/api/messages/${currentUser.id}/${userId}`);
             const data = await res.json();
@@ -1212,7 +1146,7 @@
             document.getElementById('groupActions').style.display = 'block';
             document.getElementById('messageInput').disabled = false;
             document.getElementById('messageInput').focus();
-            closeSidebar();
+            if (window.innerWidth <= 768) closeSidebar();
             
             socket.emit('join group', groupId);
             
@@ -1315,11 +1249,6 @@
             });
         };
 
-        function scrollToBottom() {
-            const container = document.getElementById('messagesContainer');
-            container.scrollTop = container.scrollHeight;
-        }
-
         function escapeHtml(text) {
             const div = document.createElement('div');
             div.textContent = text;
@@ -1342,6 +1271,7 @@
             await loadFriends();
             await loadFriendRequests();
             
+            // Socket events
             socket.on('online users update', () => {
                 loadFriends();
             });
@@ -1456,6 +1386,7 @@
                 }
             };
             
+            // Create group
             document.getElementById('createGroupConfirmBtn').onclick = async () => {
                 const name = document.getElementById('groupNameInput').value;
                 const description = document.getElementById('groupDescInput').value;
@@ -1480,6 +1411,7 @@
                 document.getElementById('groupModal').style.display = 'none';
             };
             
+            // Add member
             document.getElementById('addMemberBtn').onclick = async () => {
                 if (!currentChat || currentChat.type !== 'group') return;
                 const membersRes = await fetch(`/api/group-members/${currentChat.id}`);
@@ -1513,6 +1445,7 @@
                 document.getElementById('addMemberModal').style.display = 'none';
             };
             
+            // Edit message
             document.getElementById('saveEditBtn').onclick = async () => {
                 const newMessage = document.getElementById('editMessageInput').value;
                 if (!newMessage) return;
