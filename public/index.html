@@ -2,18 +2,21 @@
 <html lang="my">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pro Chat V3 - Telegram Style</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>SenkiChat - Telegram Style Chat</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
             min-height: 100vh;
         }
@@ -29,25 +32,31 @@
 
         .auth-card {
             background: rgba(255,255,255,0.95);
-            border-radius: 20px;
-            padding: 40px;
+            border-radius: 28px;
+            padding: 40px 30px;
             width: 100%;
-            max-width: 450px;
+            max-width: 400px;
             box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+            backdrop-filter: blur(10px);
         }
 
         .auth-card h2 {
             text-align: center;
             color: #1a1a2e;
             margin-bottom: 30px;
+            font-size: 28px;
+            font-weight: 700;
         }
 
         .auth-card input {
             width: 100%;
-            padding: 14px;
+            padding: 16px;
             margin: 10px 0;
             border: 2px solid #e2e8f0;
-            border-radius: 12px;
+            border-radius: 16px;
+            font-size: 16px;
+            transition: all 0.3s;
+            -webkit-appearance: none;
         }
 
         .auth-card input:focus {
@@ -57,13 +66,13 @@
 
         .auth-card button {
             width: 100%;
-            padding: 14px;
+            padding: 16px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
-            border-radius: 12px;
+            border-radius: 16px;
             font-size: 16px;
-            font-weight: bold;
+            font-weight: 600;
             cursor: pointer;
             margin-top: 15px;
         }
@@ -77,6 +86,7 @@
         .auth-link span {
             color: #667eea;
             cursor: pointer;
+            font-weight: 600;
         }
 
         /* Main App */
@@ -84,21 +94,54 @@
             display: none;
             height: 100vh;
             overflow: hidden;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
         }
 
         .chat-layout {
             display: flex;
             height: 100%;
+            transition: transform 0.3s ease;
         }
 
-        /* Sidebar */
+        /* Sidebar - Mobile Friendly */
         .sidebar {
-            width: 300px;
+            width: 85%;
+            max-width: 320px;
             background: #1e1e2f;
             color: white;
             display: flex;
             flex-direction: column;
             border-right: 1px solid #2d2d3f;
+            position: fixed;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            z-index: 20;
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar.open {
+            transform: translateX(0);
+        }
+
+        .sidebar-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 15;
+            display: none;
+        }
+
+        .sidebar-overlay.open {
+            display: block;
         }
 
         .profile-section {
@@ -108,7 +151,7 @@
             cursor: pointer;
         }
 
-        .profile-section:hover {
+        .profile-section:active {
             background: #2d2d3f;
         }
 
@@ -123,7 +166,7 @@
 
         .profile-name {
             font-size: 16px;
-            font-weight: bold;
+            font-weight: 600;
         }
 
         .profile-bio {
@@ -136,17 +179,24 @@
         .tabs {
             display: flex;
             border-bottom: 1px solid #2d2d3f;
+            background: #1e1e2f;
         }
 
         .tab {
             flex: 1;
-            padding: 12px;
+            padding: 14px;
             text-align: center;
             cursor: pointer;
             background: #1e1e2f;
             border: none;
             color: #a0aec0;
             font-size: 13px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .tab:active {
+            background: #2d2d3f;
         }
 
         .tab.active {
@@ -154,7 +204,7 @@
             border-bottom: 2px solid #667eea;
         }
 
-        /* Search */
+        /* Search Box */
         .search-box {
             padding: 12px;
             border-bottom: 1px solid #2d2d3f;
@@ -162,12 +212,13 @@
 
         .search-box input {
             width: 100%;
-            padding: 10px;
+            padding: 12px;
             background: #2d2d3f;
             border: none;
-            border-radius: 20px;
+            border-radius: 25px;
             color: white;
             outline: none;
+            font-size: 14px;
         }
 
         .search-box input::placeholder {
@@ -186,19 +237,20 @@
             color: #a0aec0;
             margin: 10px 0;
             text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .user-item, .group-item, .friend-item, .request-item {
             display: flex;
             align-items: center;
-            padding: 10px;
+            padding: 12px;
             margin: 5px 0;
-            border-radius: 12px;
+            border-radius: 14px;
             cursor: pointer;
-            transition: background 0.3s;
+            transition: background 0.2s;
         }
 
-        .user-item:hover, .group-item:hover, .friend-item:hover, .request-item:hover {
+        .user-item:active, .group-item:active, .friend-item:active {
             background: #2d2d3f;
         }
 
@@ -208,15 +260,15 @@
         }
 
         .user-avatar, .group-avatar, .friend-avatar {
-            width: 45px;
-            height: 45px;
+            width: 50px;
+            height: 50px;
             border-radius: 50%;
             object-fit: cover;
-            margin-right: 12px;
+            margin-right: 14px;
         }
 
         .group-avatar {
-            border-radius: 12px;
+            border-radius: 14px;
         }
 
         .user-info, .group-info {
@@ -224,8 +276,8 @@
         }
 
         .user-name, .group-name, .friend-name {
-            font-weight: bold;
-            font-size: 14px;
+            font-weight: 600;
+            font-size: 15px;
         }
 
         .user-status {
@@ -254,11 +306,12 @@
         }
 
         .request-buttons button {
-            padding: 5px 12px;
+            padding: 6px 14px;
             border: none;
-            border-radius: 15px;
+            border-radius: 20px;
             cursor: pointer;
-            font-size: 11px;
+            font-size: 12px;
+            font-weight: 500;
         }
 
         .accept-btn { background: #48bb78; color: white; }
@@ -268,10 +321,11 @@
             background: #667eea;
             color: white;
             border: none;
-            padding: 5px 12px;
-            border-radius: 15px;
+            padding: 6px 14px;
+            border-radius: 20px;
             cursor: pointer;
-            font-size: 11px;
+            font-size: 12px;
+            font-weight: 500;
         }
 
         .badge {
@@ -289,20 +343,47 @@
             display: flex;
             flex-direction: column;
             background: #f7fafc;
+            width: 100%;
         }
 
         .chat-header {
             background: white;
-            padding: 15px 25px;
+            padding: 12px 16px;
             border-bottom: 1px solid #e2e8f0;
             display: flex;
             align-items: center;
             justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 10;
         }
 
         .chat-user-info {
             display: flex;
             align-items: center;
+            flex: 1;
+        }
+
+        .menu-btn {
+            background: none;
+            border: none;
+            font-size: 22px;
+            color: #4a5568;
+            cursor: pointer;
+            padding: 8px;
+            margin-right: 8px;
+            display: none;
+        }
+
+        .back-btn {
+            background: none;
+            border: none;
+            font-size: 20px;
+            color: #4a5568;
+            cursor: pointer;
+            padding: 8px;
+            margin-right: 8px;
+            display: none;
         }
 
         .chat-user-avatar {
@@ -310,69 +391,78 @@
             height: 45px;
             border-radius: 50%;
             object-fit: cover;
-            margin-right: 15px;
+            margin-right: 12px;
         }
 
         .chat-user-info h3 {
             font-size: 16px;
             color: #2d3748;
+            font-weight: 600;
         }
 
         .chat-user-info p {
-            font-size: 12px;
+            font-size: 11px;
             color: #718096;
         }
 
         .chat-actions button {
             background: none;
             border: none;
-            font-size: 18px;
+            font-size: 20px;
             cursor: pointer;
             margin-left: 10px;
             color: #718096;
+            padding: 8px;
         }
 
+        /* Messages */
         .messages-container {
             flex: 1;
             overflow-y: auto;
-            padding: 20px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
         }
 
         .message {
-            margin-bottom: 15px;
+            margin-bottom: 16px;
             display: flex;
             align-items: flex-start;
             position: relative;
+            max-width: 85%;
         }
 
         .message.sent {
+            align-self: flex-end;
             flex-direction: row-reverse;
         }
 
         .message-avatar {
-            width: 35px;
-            height: 35px;
+            width: 32px;
+            height: 32px;
             border-radius: 50%;
             object-fit: cover;
-            margin: 0 10px;
-            cursor: pointer;
+            margin: 0 8px;
+            flex-shrink: 0;
         }
 
         .message-content {
-            max-width: 60%;
+            max-width: calc(100% - 48px);
         }
 
         .message-bubble {
-            padding: 10px 16px;
-            border-radius: 18px;
+            padding: 10px 14px;
+            border-radius: 20px;
             word-wrap: break-word;
+            font-size: 14px;
+            line-height: 1.4;
         }
 
         .message.received .message-bubble {
             background: white;
             color: #2d3748;
             border-bottom-left-radius: 4px;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
         }
 
         .message.sent .message-bubble {
@@ -384,13 +474,13 @@
         .message-meta {
             font-size: 10px;
             color: #a0aec0;
-            margin-top: 5px;
-            margin-left: 10px;
+            margin-top: 4px;
+            margin-left: 8px;
         }
 
         .message.sent .message-meta {
             text-align: right;
-            margin-right: 10px;
+            margin-right: 8px;
         }
 
         .edited-badge {
@@ -401,16 +491,17 @@
 
         .deleted-message {
             font-style: italic;
-            opacity: 0.7;
+            opacity: 0.6;
         }
 
         .message-actions {
             position: absolute;
             background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.15);
             display: none;
             z-index: 100;
+            top: -30px;
         }
 
         .message:hover .message-actions {
@@ -420,47 +511,60 @@
         .message-actions button {
             background: none;
             border: none;
-            padding: 5px 10px;
+            padding: 6px 12px;
             cursor: pointer;
+            font-size: 12px;
         }
 
         .edit-btn { color: #48bb78; }
         .delete-btn { color: #e53e3e; }
 
         .typing-indicator {
-            padding: 10px 20px;
+            padding: 8px 16px;
             color: #718096;
-            font-size: 12px;
+            font-size: 11px;
             font-style: italic;
         }
 
+        /* Input Area */
         .input-area {
             background: white;
-            padding: 20px;
+            padding: 12px 16px;
             border-top: 1px solid #e2e8f0;
             display: flex;
-            gap: 12px;
+            gap: 10px;
+            align-items: center;
         }
 
         .input-area input {
             flex: 1;
-            padding: 14px 18px;
+            padding: 12px 16px;
             border: 2px solid #e2e8f0;
             border-radius: 30px;
             outline: none;
+            font-size: 15px;
+            background: #f7fafc;
         }
 
         .input-area input:focus {
             border-color: #667eea;
+            background: white;
         }
 
         .input-area button {
-            padding: 14px 28px;
+            padding: 12px 20px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
             border-radius: 30px;
             cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            white-space: nowrap;
+        }
+
+        .input-area button:active {
+            transform: scale(0.97);
         }
 
         /* Modals */
@@ -479,23 +583,31 @@
 
         .modal-content {
             background: white;
-            border-radius: 20px;
-            padding: 30px;
+            border-radius: 24px;
+            padding: 24px;
             width: 90%;
-            max-width: 450px;
+            max-width: 380px;
+            margin: 20px;
         }
 
-        .modal-content h3 { margin-bottom: 20px; }
+        .modal-content h3 {
+            margin-bottom: 20px;
+            font-size: 20px;
+            font-weight: 600;
+        }
+
         .modal-content input, .modal-content textarea, .modal-content select {
             width: 100%;
-            padding: 12px;
+            padding: 14px;
             margin: 10px 0;
             border: 2px solid #e2e8f0;
-            border-radius: 12px;
+            border-radius: 14px;
+            font-size: 15px;
         }
+
         .modal-content img {
-            width: 100px;
-            height: 100px;
+            width: 90px;
+            height: 90px;
             border-radius: 50%;
             object-fit: cover;
             margin: 10px auto;
@@ -504,33 +616,104 @@
 
         .modal-buttons {
             display: flex;
-            gap: 10px;
+            gap: 12px;
             margin-top: 20px;
         }
+
         .modal-buttons button {
             flex: 1;
-            padding: 12px;
+            padding: 14px;
             border: none;
-            border-radius: 10px;
+            border-radius: 14px;
             cursor: pointer;
+            font-size: 15px;
+            font-weight: 500;
         }
-        .btn-primary { background: #667eea; color: white; }
-        .btn-secondary { background: #e2e8f0; }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #e2e8f0;
+            color: #4a5568;
+        }
 
         .logout-btn {
             margin: 15px;
             background: #e53e3e;
             color: white;
             border: none;
-            padding: 10px;
-            border-radius: 10px;
+            padding: 12px;
+            border-radius: 14px;
             cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
         }
 
         .hidden { display: none; }
 
+        /* Mobile Styles */
         @media (max-width: 768px) {
-            .sidebar { width: 250px; }
+            .menu-btn {
+                display: block;
+            }
+            
+            .back-btn {
+                display: block;
+            }
+            
+            .sidebar {
+                width: 280px;
+            }
+            
+            .message {
+                max-width: 90%;
+            }
+            
+            .message-bubble {
+                font-size: 14px;
+                padding: 10px 14px;
+            }
+            
+            .input-area input {
+                font-size: 16px;
+            }
+            
+            .input-area button {
+                padding: 12px 18px;
+            }
+            
+            .tabs {
+                position: sticky;
+                top: 0;
+                z-index: 5;
+            }
+            
+            .chat-user-info h3 {
+                font-size: 15px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .auth-card {
+                padding: 30px 20px;
+            }
+            
+            .profile-pic {
+                width: 50px;
+                height: 50px;
+            }
+            
+            .user-avatar, .friend-avatar {
+                width: 44px;
+                height: 44px;
+            }
+            
+            .message {
+                max-width: 95%;
+            }
         }
     </style>
 </head>
@@ -538,11 +721,11 @@
     <!-- Auth Container -->
     <div id="authContainer" class="auth-container">
         <div class="auth-card">
-            <h2 id="authTitle">Login</h2>
-            <input type="text" id="loginUsername" placeholder="Username">
+            <h2 id="authTitle">SenkiChat</h2>
+            <input type="text" id="loginUsername" placeholder="Username" autocomplete="off">
             <input type="password" id="loginPassword" placeholder="Password">
-            <input type="text" id="registerUsername" placeholder="Username" style="display:none">
-            <input type="email" id="registerEmail" placeholder="Email" style="display:none">
+            <input type="text" id="registerUsername" placeholder="Username" style="display:none" autocomplete="off">
+            <input type="email" id="registerEmail" placeholder="Email" style="display:none" autocomplete="off">
             <input type="password" id="registerPassword" placeholder="Password" style="display:none">
             <button id="authBtn">Login</button>
             <div class="auth-link">
@@ -554,7 +737,11 @@
     <!-- Main App -->
     <div id="appContainer" class="app-container">
         <div class="chat-layout">
-            <div class="sidebar">
+            <!-- Sidebar Overlay -->
+            <div id="sidebarOverlay" class="sidebar-overlay"></div>
+            
+            <!-- Sidebar -->
+            <div id="sidebar" class="sidebar">
                 <div class="profile-section" id="profileBtn">
                     <img id="sidebarProfilePic" class="profile-pic" src="/uploads/default-avatar.png">
                     <div id="sidebarUsername" class="profile-name">User</div>
@@ -580,9 +767,12 @@
                 <button class="logout-btn" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</button>
             </div>
             
+            <!-- Chat Area -->
             <div class="chat-area">
                 <div class="chat-header" id="chatHeader" style="display:none">
                     <div class="chat-user-info">
+                        <button id="menuToggleBtn" class="menu-btn"><i class="fas fa-bars"></i></button>
+                        <button id="backToChatsBtn" class="back-btn"><i class="fas fa-arrow-left"></i></button>
                         <img id="chatUserPic" class="chat-user-avatar" src="">
                         <div>
                             <h3 id="chatUserName">Select a chat</h3>
@@ -656,7 +846,7 @@
         </div>
     </div>
 
-       <script src="/socket.io/socket.io.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
     <script>
         let currentUser = null;
         let socket = null;
@@ -665,7 +855,7 @@
         let editingIsGroup = false;
         let editingGroupId = null;
         let editingToUserId = null;
-        let pendingMessages = new Set(); // ထပ်မပါအောင်
+        let isSidebarOpen = false;
 
         // DOM Elements
         const authContainer = document.getElementById('authContainer');
@@ -673,7 +863,12 @@
         const authTitle = document.getElementById('authTitle');
         const authBtn = document.getElementById('authBtn');
         const toggleAuth = document.getElementById('toggleAuth');
+        const sidebar = document.getElementById('sidebar');
+        const sidebarOverlay = document.getElementById('sidebarOverlay');
+        const menuToggleBtn = document.getElementById('menuToggleBtn');
+        const backToChatsBtn = document.getElementById('backToChatsBtn');
         
+        // Tab elements
         const friendsTab = document.getElementById('friendsTab');
         const groupsTab = document.getElementById('groupsTab');
         const requestsTab = document.getElementById('requestsTab');
@@ -688,10 +883,42 @@
         
         let isLogin = true;
 
+        // Mobile sidebar functions
+        function openSidebar() {
+            sidebar.classList.add('open');
+            sidebarOverlay.classList.add('open');
+            isSidebarOpen = true;
+        }
+
+        function closeSidebar() {
+            sidebar.classList.remove('open');
+            sidebarOverlay.classList.remove('open');
+            isSidebarOpen = false;
+        }
+
+        function toggleSidebar() {
+            if (isSidebarOpen) {
+                closeSidebar();
+            } else {
+                openSidebar();
+            }
+        }
+
+        function showChatsList() {
+            if (currentChat) {
+                currentChat = null;
+                document.getElementById('chatHeader').style.display = 'none';
+                document.getElementById('inputArea').style.display = 'none';
+                document.getElementById('messagesContainer').innerHTML = '<div style="text-align: center; color: #a0aec0; padding: 50px;">Select a chat to start</div>';
+            }
+            closeSidebar();
+        }
+
+        // Toggle login/register
         toggleAuth.onclick = () => {
             isLogin = !isLogin;
             if (isLogin) {
-                authTitle.innerText = 'Login';
+                authTitle.innerText = 'SenkiChat';
                 toggleAuth.innerText = "Don't have an account? Register";
                 document.getElementById('loginUsername').style.display = 'block';
                 document.getElementById('loginPassword').style.display = 'block';
@@ -699,7 +926,7 @@
                 document.getElementById('registerEmail').style.display = 'none';
                 document.getElementById('registerPassword').style.display = 'none';
             } else {
-                authTitle.innerText = 'Register';
+                authTitle.innerText = 'Create Account';
                 toggleAuth.innerText = "Already have an account? Login";
                 document.getElementById('loginUsername').style.display = 'none';
                 document.getElementById('loginPassword').style.display = 'none';
@@ -709,6 +936,7 @@
             }
         };
 
+        // Auth button
         authBtn.onclick = async () => {
             try {
                 if (isLogin) {
@@ -760,6 +988,18 @@
             return false;
         }
 
+        // Mobile event listeners
+        if (menuToggleBtn) {
+            menuToggleBtn.onclick = toggleSidebar;
+        }
+        
+        if (backToChatsBtn) {
+            backToChatsBtn.onclick = showChatsList;
+        }
+        
+        sidebarOverlay.onclick = closeSidebar;
+
+        // Tab switching
         function setActiveTab(tab) {
             friendsTab.classList.remove('active');
             groupsTab.classList.remove('active');
@@ -788,6 +1028,7 @@
                 searchResultsDiv.classList.remove('hidden');
                 searchBox.classList.remove('hidden');
             }
+            closeSidebar();
         }
 
         friendsTab.onclick = () => setActiveTab('friends');
@@ -926,7 +1167,6 @@
         };
 
         window.selectUser = async function(userId, username, profilePic, status) {
-            // Check if friend
             const friendsRes = await fetch(`/api/friends/${currentUser.id}`);
             const friendsData = await friendsRes.json();
             const isFriend = friendsData.friends.some(f => f.id == userId);
@@ -945,6 +1185,7 @@
             document.getElementById('groupActions').style.display = 'none';
             document.getElementById('messageInput').disabled = false;
             document.getElementById('messageInput').focus();
+            closeSidebar();
             
             const res = await fetch(`/api/messages/${currentUser.id}/${userId}`);
             const data = await res.json();
@@ -971,6 +1212,7 @@
             document.getElementById('groupActions').style.display = 'block';
             document.getElementById('messageInput').disabled = false;
             document.getElementById('messageInput').focus();
+            closeSidebar();
             
             socket.emit('join group', groupId);
             
@@ -1100,9 +1342,8 @@
             await loadFriends();
             await loadFriendRequests();
             
-            // Socket Events - တစ်ခါပဲထည့်ထားတယ်
-            socket.on('online users update', (users) => {
-                loadFriends(); // Refresh friend list for status
+            socket.on('online users update', () => {
+                loadFriends();
             });
             
             socket.on('friend request received', (data) => {
@@ -1117,17 +1358,9 @@
             });
             
             socket.on('message sent', (data) => {
-                // Replace temp message if exists
                 const tempMsg = document.querySelector(`.message[data-message-id^="temp_"]:last-child`);
                 if (tempMsg && tempMsg.querySelector('.message-bubble')?.innerHTML === escapeHtml(data.message)) {
                     tempMsg.setAttribute('data-message-id', data.message_id);
-                    const actionsDiv = tempMsg.querySelector('.message-actions');
-                    if (actionsDiv) {
-                        const editBtn = actionsDiv.querySelector('.edit-btn');
-                        const deleteBtn = actionsDiv.querySelector('.delete-btn');
-                        if (editBtn) editBtn.setAttribute('onclick', `editMessage('${data.message_id}', '${escapeHtml(data.message).replace(/'/g, "\\'")}')`);
-                        if (deleteBtn) deleteBtn.setAttribute('onclick', `deleteMessage('${data.message_id}')`);
-                    }
                 }
             });
             
@@ -1223,7 +1456,6 @@
                 }
             };
             
-            // Create group
             document.getElementById('createGroupConfirmBtn').onclick = async () => {
                 const name = document.getElementById('groupNameInput').value;
                 const description = document.getElementById('groupDescInput').value;
@@ -1248,7 +1480,6 @@
                 document.getElementById('groupModal').style.display = 'none';
             };
             
-            // Add member
             document.getElementById('addMemberBtn').onclick = async () => {
                 if (!currentChat || currentChat.type !== 'group') return;
                 const membersRes = await fetch(`/api/group-members/${currentChat.id}`);
@@ -1282,7 +1513,6 @@
                 document.getElementById('addMemberModal').style.display = 'none';
             };
             
-            // Edit message
             document.getElementById('saveEditBtn').onclick = async () => {
                 const newMessage = document.getElementById('editMessageInput').value;
                 if (!newMessage) return;
@@ -1308,3 +1538,5 @@
 
         checkSavedUser();
     </script>
+</body>
+</html>

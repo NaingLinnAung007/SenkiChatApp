@@ -1,6 +1,7 @@
 {
-  "name": "pro-chat-app",
+  "name": "senkichat-app",
   "version": "1.0.0",
+  "description": "Telegram Style Chat Application with Friends, Groups, and Real-time Messaging",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
@@ -12,5 +13,8 @@
     "bcryptjs": "^2.4.3",
     "multer": "^1.4.5-lts.1",
     "uuid": "^9.0.0"
-  }
+  },
+  "keywords": ["chat", "socketio", "postgresql", "telegram-clone", "realtime"],
+  "author": "Senki",
+  "license": "MIT"
 }

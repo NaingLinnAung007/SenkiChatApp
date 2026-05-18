@@ -33,8 +33,19 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 // Online users tracking
-const onlineUsers = new Map(); // socketId -> userId
-const userSockets = new Map(); // userId -> socketId
+const onlineUsers = new Map();
+const userSockets = new Map();
+
+// ========== Helper Functions ==========
+function escapeHtml(text) {
+    if (!text) return '';
+    return text.replace(/[&<>]/g, function(m) {
+        if (m === '&') return '&amp;';
+        if (m === '<') return '&lt;';
+        if (m === '>') return '&gt;';
+        return m;
+    });
+}
 
 // ========== API ROUTES ==========
 
@@ -42,6 +53,10 @@ const userSockets = new Map(); // userId -> socketId
 app.post('/api/register', async (req, res) => {
     try {
         const { username, email, password } = req.body;
+        
+        if (!username || !email || !password) {
+            return res.json({ success: false, error: 'All fields are required' });
+        }
         
         const existing = await runQuery('SELECT * FROM users WHERE username = $1 OR email = $2', [username, email]);
         if (existing.length > 0) {
@@ -66,6 +81,10 @@ app.post('/api/register', async (req, res) => {
 app.post('/api/login', async (req, res) => {
     try {
         const { username, password } = req.body;
+        
+        if (!username || !password) {
+            return res.json({ success: false, error: 'Username and password required' });
+        }
         
         const users = await runQuery('SELECT * FROM users WHERE username = $1', [username]);
         if (users.length === 0) {
@@ -98,6 +117,10 @@ app.post('/api/login', async (req, res) => {
 app.post('/api/update-profile', upload.single('profilePicture'), async (req, res) => {
     try {
         const { userId, bio } = req.body;
+        
+        if (!userId) {
+            return res.json({ success: false, error: 'User ID required' });
+        }
         
         if (req.file) {
             await run('UPDATE users SET bio = $1, profile_picture = $2 WHERE id = $3', 
@@ -136,7 +159,7 @@ app.get('/api/friends/:userId', async (req, res) => {
     try {
         const { userId } = req.params;
         const friends = await runQuery(`
-            SELECT u.id, u.username, u.profile_picture, u.status, u.bio
+            SELECT DISTINCT u.id, u.username, u.profile_picture, u.status, u.bio
             FROM friends f
             JOIN users u ON (f.friend_id = u.id OR f.user_id = u.id)
             WHERE (f.user_id = $1 OR f.friend_id = $1) AND u.id != $1
@@ -175,6 +198,10 @@ app.post('/api/friend-request', async (req, res) => {
     try {
         const { fromUserId, toUserId } = req.body;
         
+        if (!fromUserId || !toUserId) {
+            return res.json({ success: false, error: 'Invalid request' });
+        }
+        
         const existingFriend = await runQuery(
             'SELECT * FROM friends WHERE (user_id = $1 AND friend_id = $2) OR (user_id = $2 AND friend_id = $1)',
             [fromUserId, toUserId]
@@ -184,16 +211,16 @@ app.post('/api/friend-request', async (req, res) => {
         }
         
         const existingRequest = await runQuery(
-            'SELECT * FROM friend_requests WHERE from_user = $1 AND to_user = $2 AND status = "pending"',
-            [fromUserId, toUserId]
+            'SELECT * FROM friend_requests WHERE from_user = $1 AND to_user = $2 AND status = $3',
+            [fromUserId, toUserId, 'pending']
         );
         if (existingRequest.length > 0) {
             return res.json({ success: false, error: 'Friend request already sent' });
         }
         
         await run(
-            'INSERT INTO friend_requests (from_user, to_user) VALUES ($1, $2)',
-            [fromUserId, toUserId]
+            'INSERT INTO friend_requests (from_user, to_user, status) VALUES ($1, $2, $3)',
+            [fromUserId, toUserId, 'pending']
         );
         
         const sender = await runQuery('SELECT id, username, profile_picture FROM users WHERE id = $1', [fromUserId]);
@@ -276,6 +303,11 @@ app.get('/api/messages/:userId/:otherId', async (req, res) => {
 app.post('/api/groups', async (req, res) => {
     try {
         const { name, description, createdBy } = req.body;
+        
+        if (!name || !createdBy) {
+            return res.json({ success: false, error: 'Name and createdBy required' });
+        }
+        
         const groupId = uuidv4();
         
         await run(
@@ -342,7 +374,7 @@ app.post('/api/groups/add-member', async (req, res) => {
         }
         
         await run(
-            'INSERT OR IGNORE INTO group_members (group_id, user_id, role) VALUES ($1, $2, $3)',
+            'INSERT INTO group_members (group_id, user_id, role) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING',
             [groupId, userId, 'member']
         );
         
@@ -382,6 +414,11 @@ app.put('/api/messages/:messageId', async (req, res) => {
     try {
         const { messageId } = req.params;
         const { message } = req.body;
+        
+        if (!message) {
+            return res.json({ success: false, error: 'Message required' });
+        }
+        
         await run(
             'UPDATE messages SET message = $1, is_edited = 1, edited_at = CURRENT_TIMESTAMP WHERE message_id = $2',
             [message, messageId]
@@ -450,6 +487,11 @@ io.on('connection', (socket) => {
     socket.on('private message', async (data) => {
         const { fromUserId, toUserId, message } = data;
         
+        if (!fromUserId || !toUserId || !message) {
+            console.log('Invalid message data');
+            return;
+        }
+        
         const areFriends = await runQuery(
             'SELECT * FROM friends WHERE (user_id = $1 AND friend_id = $2) OR (user_id = $2 AND friend_id = $1)',
             [fromUserId, toUserId]
@@ -495,6 +537,11 @@ io.on('connection', (socket) => {
     socket.on('group message', async (data) => {
         const { fromUserId, groupId, message } = data;
         
+        if (!fromUserId || !groupId || !message) {
+            console.log('Invalid group message data');
+            return;
+        }
+        
         const isMember = await runQuery(
             'SELECT * FROM group_members WHERE group_id = $1 AND user_id = $2',
             [groupId, fromUserId]
@@ -532,6 +579,7 @@ io.on('connection', (socket) => {
     
     socket.on('edit message', async (data) => {
         const { messageId, message, toUserId, groupId, isGroup } = data;
+        
         try {
             await run('UPDATE messages SET message = $1, is_edited = 1 WHERE message_id = $2', [message, messageId]);
             const editData = { messageId, message, is_edited: 1 };
@@ -552,6 +600,7 @@ io.on('connection', (socket) => {
     
     socket.on('delete message', async (data) => {
         const { messageId, toUserId, groupId, isGroup } = data;
+        
         try {
             await run('UPDATE messages SET message = $1, is_deleted = 1 WHERE message_id = $2', 
                 ['This message was deleted', messageId]);
@@ -572,7 +621,10 @@ io.on('connection', (socket) => {
     });
     
     socket.on('join group', (groupId) => {
-        socket.join(`group_${groupId}`);
+        if (groupId) {
+            socket.join(`group_${groupId}`);
+            console.log(`Socket ${socket.id} joined group ${groupId}`);
+        }
     });
     
     socket.on('typing', (data) => {
@@ -616,18 +668,27 @@ io.on('connection', (socket) => {
     });
 });
 
-// Initialize database and start server
-initDatabase().then(() => {
-    const PORT = process.env.PORT || 3000;
-    server.listen(PORT, () => {
-        console.log(`
-    ═══════════════════════════════════════
-    ✅ Pro Chat App V3 စတင်အလုပ်လုပ်နေပါပြီ
-    🌐 http://localhost:${PORT}
-    📦 PostgreSQL Database Connected
-    ═══════════════════════════════════════
-        `);
-    });
-}).catch(err => {
-    console.error('Failed to initialize database:', err);
-});
+// ========== START SERVER ==========
+async function startServer() {
+    try {
+        await initDatabase();
+        
+        const PORT = process.env.PORT || 3000;
+        server.listen(PORT, () => {
+            console.log(`
+    ═══════════════════════════════════════════════
+    ✅ SenkiChat App စတင်အလုပ်လုပ်နေပါပြီ
+    🌐 Local: http://localhost:${PORT}
+    🌍 Railway: https://senkichatapp-production.up.railway.app
+    📦 Database: PostgreSQL
+    👥 Features: Friends, Groups, Edit/Delete Messages
+    ═══════════════════════════════════════════════
+            `);
+        });
+    } catch (err) {
+        console.error('Failed to initialize database:', err);
+        process.exit(1);
+    }
+}
+
+startServer();
