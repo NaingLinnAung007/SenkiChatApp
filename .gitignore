@@ -1,0 +1,7 @@
+node_modules/
+.env
+chat.db
+uploads/*.png
+!uploads/default-avatar.png
+.DS_Store
+*.log
