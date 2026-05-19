@@ -1,0 +1,42 @@
+# Dependencies
+node_modules/
+package-lock.json
+yarn.lock
+
+# Environment variables
+.env
+.env.local
+.env.production
+
+# Database
+chat.db
+chat.db-journal
+*.sqlite
+*.sqlite3
+
+# Uploads
+uploads/*.png
+uploads/*.jpg
+uploads/*.jpeg
+uploads/*.gif
+!uploads/default-avatar.png
+!uploads/default-group.png
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Build
+dist/
+build/
