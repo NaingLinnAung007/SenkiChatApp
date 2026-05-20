@@ -14,20 +14,7 @@
     "multer": "^1.4.5-lts.1",
     "uuid": "^9.0.0"
   },
-  "keywords": [
-    "chat",
-    "socketio",
-    "postgresql",
-    "realtime"
-  ],
-  "author": "Senki",
-  "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/NaingLinnAung007/SenkiChatApp.git"
-  },
-  "bugs": {
-    "url": "https://github.com/NaingLinnAung007/SenkiChatApp/issues"
-  },
-  "homepage": "https://github.com/NaingLinnAung007/SenkiChatApp#readme"
+  "engines": {
+    "node": "22.x"
+  }
 }
